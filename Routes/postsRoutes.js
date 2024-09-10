@@ -15,7 +15,7 @@ router.get("/me", getAllPosts);
 router.get("/me", auth, getUserPost);
 router.post("/me", auth, createPost);
 router.get("/:id",getOnePost);
-router.patch("/:id", updatePost);
+router.patch("/:id",auth, updatePost);
 router.delete("/:id",auth ,deletePost);
 
 module.exports = router;
