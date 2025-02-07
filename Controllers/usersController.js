@@ -3,12 +3,6 @@ const AppError = require("./../utils/App.Error");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const createToken = (userId) => {
-  return (token = jwt.sign({ userId }, process.env.JWT_SECRET, {
-    expiresIn: 24 * 60 * 60 * 1000,
-  }));
-};
-
 exports.getAllUsers = async (req, res, next) => {
   try {
     const users = await User.find();
@@ -112,18 +106,24 @@ exports.login = async (req, res, next) => {
     if (!isMatch) {
       throw new AppError("email or password is Invalid", 404);
     }
-    const token = createToken(user._id);
+    const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
+    const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_TOKEN, {
+      expiresIn: "7d",
+    });
 
-    res.cookie("jwt", token, {
+    res.cookie("jwt", refreshToken, {
       httpOnly: true,
+      secure: true,
       sameSite: "None",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).send({
       status: "success",
       message: "Login Successful",
-      data: { token, role: user.role },
+      data: { accessToken },
     });
   } catch (error) {
     console.log(error);
