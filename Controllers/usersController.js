@@ -109,9 +109,13 @@ exports.login = async (req, res, next) => {
     const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });
-    const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_TOKEN, {
-      expiresIn: "7d",
-    });
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_TOKEN,
+      {
+        expiresIn: "7d",
+      }
+    );
 
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
@@ -125,6 +129,32 @@ exports.login = async (req, res, next) => {
       message: "Login Successful",
       data: { accessToken },
     });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+exports.refresh = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies.jwt;
+    if (!refreshToken) throw new AppError("No refresh token provided", 401);
+    jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_TOKEN,
+      async (error, decoded) => {
+        if (error) throw new AppError("Forbidden", 403);
+        const user = await User.findById(decoded.id).exec();
+        if (!user) throw new AppError("Unauthorized", 401);
+        const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+          expiresIn: "15m",
+        });
+        res.status(200).send({
+          status: "success",
+          message: "Access Token generated again successfully",
+          data: { accessToken },
+        });
+      }
+    );
   } catch (error) {
     console.log(error);
   }

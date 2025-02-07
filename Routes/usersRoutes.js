@@ -8,8 +8,8 @@ const {
   login,
   updateUser,
   deleteUser,
+  refresh
 } = require("./../Controllers/usersController");
-const { auth } = require("./../Middlewares/authMiddleware");
 
 
 router.get("/", getAllUsers);
@@ -18,5 +18,6 @@ router.post("/signup", signup);
 router.post("/login", login);
 router.patch("/:id", updateUser);
 router.delete("/:id", deleteUser);
+router.post("/refresh", refresh);
 
 module.exports = router;
