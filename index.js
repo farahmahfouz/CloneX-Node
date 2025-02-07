@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const morgan = require('morgan');
+const cookieParser = require("cookie-parser");
 require("express-async-errors");
 
 
@@ -16,7 +18,8 @@ const app = express();
 
 dotenv.config();
 
-// app.use(morgan("dev"));
+app.use(morgan("dev"));
+app.use(cookieParser());
 app.use(cors());
 app.use(express.json());
 
