@@ -21,7 +21,8 @@ passport.use(
             name: profile.displayName,
             email: profile.emails[0].value,
             avatar: profile.photos[0].value,
-            password: Math.random().toString(36).slice(-8) 
+            password: Math.random().toString(36).slice(-8), 
+            dateOfBirth: Date()
           });
         }
         done(null, user);
