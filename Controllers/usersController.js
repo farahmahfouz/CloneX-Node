@@ -2,10 +2,11 @@ const User = require("./../Models/usersModel");
 const AppError = require("./../utils/App.Error");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { signupSchema, loginSchema } = require("../validation/userValidation");
 
 exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select("-password");;
     if (!users) {
       throw new AppError("No users Found", 404);
     }
@@ -22,7 +23,7 @@ exports.getAllUsers = async (req, res, next) => {
 exports.getOneUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("-password");;
     if (!user) {
       throw new AppError("No User Found", 404);
     }
@@ -36,27 +37,6 @@ exports.getOneUser = async (req, res, next) => {
   }
 };
 
-exports.signup = async (req, res, next) => {
-  try {
-    const { name, email, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 8);
-    const newUser = await User.create({
-      name,
-      email,
-      role: "user",
-      password: hashedPassword,
-    });
-    res.status(200).send({
-      status: "success",
-      message: "Signup successfull",
-      data: {
-        user: newUser,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 exports.updateUser = async (req, res, next) => {
   try {
@@ -95,17 +75,57 @@ exports.deleteUser = async (req, res, next) => {
   }
 };
 
+exports.signup = async (req, res, next) => {
+  try {
+    const { error } = signupSchema.validate(req.body, { abortEarly: true });
+    if (error) return next(new AppError(error.details[0].message, 400));
+
+    const { name, email, password, dateOfBirth } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 8);
+    //see if the user exists or not
+    const existEmail = await User.findOne({ email });
+    if (existEmail)
+      return res
+        .status(409)
+        .send({ status: "fail", message: "Email is already used" });
+    // create a new user
+    const newUser = await User.create({
+      name,
+      email,
+      role: "user",
+      password: hashedPassword,
+      dateOfBirth,
+    });
+
+    res.status(200).send({
+      status: "success",
+      message: "Signup successfull",
+      data: {
+        user: newUser,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 exports.login = async (req, res, next) => {
   try {
+    const { error } = loginSchema.validate(req.body, { abortEarly: true });
+    if (error) return next(new AppError(error.details[0].message, 400));
+
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
     if (!user) {
       throw new AppError("email or password is Invalid", 404);
     }
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       throw new AppError("email or password is Invalid", 404);
     }
+
     const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });

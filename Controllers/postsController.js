@@ -36,7 +36,7 @@ exports.getOnePost = async (req, res) => {
       data: { post },
     });
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(500).send({
       status: "error",
       message: "Something went wrong",
@@ -55,7 +55,7 @@ exports.getUserPost = async (req, res) => {
       data: { posts },
     });
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(500).send({
       status: "error",
       message: "Something went wrong",
@@ -65,20 +65,23 @@ exports.getUserPost = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
+    const { error } = postSchema.validate(req.body, { abortEarly: true });
+    if (error) return next(new AppError(error.details[0].message, 400));
+    
     const id = req.user._id;
     const { content } = req.body;
     const createPost = await Post.create({
       content,
       userId: id,
     });
-    
+
     res.status(201).send({
       status: "success",
       message: "Post created successfully",
       data: { createPost },
     });
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(500).send({
       status: "error",
       message: "Something went wrong",
@@ -139,7 +142,7 @@ exports.deletePost = async (req, res) => {
       message: "Post deleted successfully",
     });
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(500).send({
       status: "error",
       message: "Something went wrong",
