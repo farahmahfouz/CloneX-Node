@@ -111,8 +111,8 @@ exports.signup = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { error } = loginSchema.validate(req.body, { abortEarly: true });
-    if (error) return next(new AppError(error.details[0].message, 400));
+    // const { error } = loginSchema.validate(req.body, { abortEarly: true });
+    // if (error) return next(new AppError(error.details[0].message, 400));
 
     const { email, password } = req.body;
 
@@ -127,7 +127,7 @@ exports.login = async (req, res, next) => {
     }
 
     const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
+      expiresIn: "50d",
     });
     const refreshToken = jwt.sign(
       { id: user.id },
