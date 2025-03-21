@@ -1,9 +1,75 @@
 const Post = require("./../Models/postsModel");
+const Like = require("../Models/likesModel");
 const AppError = require("./../utils/App.Error");
+const mongoose = require("mongoose");
+const postSchema  = require("../validation/postValidation");
 
 exports.getAllPosts = async (req, res) => {
   try {
-    const posts = await Post.find().populate("userId", "name");
+    // const posts = await Post.find().populate("userId", "name");
+    const posts = await Post.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: "$user",
+      },
+      {
+        $lookup: {
+          from: "likes",
+          localField: "_id",
+          foreignField: "postId",
+          as: "likes",
+        },
+      },
+      {
+        $lookup: {
+          from: "likes",
+          let: { postId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$postId", "$$postId"] } } },
+            {
+              $lookup: {
+                from: "users",
+                localField: "userId",
+                foreignField: "_id",
+                as: "userDetails",
+              },
+            },
+            { $unwind: "$userDetails" },
+            {
+              $project: {
+                _id: 1,
+                user: { _id: "$userDetails._id", name: "$userDetails.name" },
+              },
+            },
+          ],
+          as: "likesWithUsers",
+        },
+      },
+      {
+        $addFields: {
+          totalLikes: { $size: "$likesWithUsers" },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          content: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          user: { _id: 1, name: 1 },
+          likesWithUsers: 1,
+          totalLikes: 1,
+        },
+      },
+    ]);
+
     if (!posts) {
       throw new AppError("No Posts Found", 404);
     }
@@ -21,26 +87,49 @@ exports.getAllPosts = async (req, res) => {
   }
 };
 
-exports.getOnePost = async (req, res) => {
+exports.getPostById = async (req, res) => {
   try {
     const postId = req.params.id;
-    const post = await Post.findById(postId).populate("userId", "name");
 
+    const post = await Post.findById(postId);
     if (!post) {
-      throw new AppError("No Post Found with this ID", 404);
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    res.status(200).send({
-      status: "success",
-      message: "Post retrieved successfully",
-      data: { post },
+    // Get likes with user details
+    const likes = await Like.aggregate([
+      {
+        $match: { postId: mongoose.Types.ObjectId.createFromHexString(postId) },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $unwind: "$userDetails",
+      },
+      {
+        $project: {
+          _id: 1,
+          user: {
+            _id: "$userDetails._id",
+            name: "$userDetails.name",
+          },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      ...post.toObject(),
+      likesWithUsers: likes,
+      totalLikes: likes.length,
     });
   } catch (error) {
-    console.log(error); 
-    res.status(500).send({
-      status: "error",
-      message: "Something went wrong",
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -55,7 +144,7 @@ exports.getUserPost = async (req, res) => {
       data: { posts },
     });
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(500).send({
       status: "error",
       message: "Something went wrong",
@@ -65,20 +154,23 @@ exports.getUserPost = async (req, res) => {
 
 exports.createPost = async (req, res) => {
   try {
+    const { error } = postSchema.validate(req.body, { abortEarly: true });
+    if (error) return next(new AppError(error.details[0].message, 400));
+
     const id = req.user._id;
     const { content } = req.body;
     const createPost = await Post.create({
       content,
       userId: id,
     });
-    
+
     res.status(201).send({
       status: "success",
       message: "Post created successfully",
       data: { createPost },
     });
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(500).send({
       status: "error",
       message: "Something went wrong",
@@ -139,7 +231,7 @@ exports.deletePost = async (req, res) => {
       message: "Post deleted successfully",
     });
   } catch (error) {
-    console.log(error); 
+    console.log(error);
     res.status(500).send({
       status: "error",
       message: "Something went wrong",

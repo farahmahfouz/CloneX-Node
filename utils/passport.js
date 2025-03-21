@@ -25,6 +25,7 @@ passport.use(
             avatar: profile.photos[0].value,
             password: hashedPassword, 
             dateOfBirth: new Date()
+
           });
         }
         done(null, user);

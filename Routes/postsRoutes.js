@@ -1,9 +1,8 @@
-// const { Router } = require("express");
 const express = require("express");
 const router = express.Router();
 const {
   getAllPosts,
-  getOnePost,
+  getPostById,
   createPost,
   updatePost,
   deletePost,
@@ -11,10 +10,10 @@ const {
 } = require("./../Controllers/postsController");
 const { auth } = require("../Middlewares/authMiddleware");
 
-router.get("/me", getAllPosts);
-router.get("/my-posts", auth, getUserPost);
-router.post("/me", auth, createPost);
-router.get("/:id", getOnePost);
+router.get("/", getAllPosts);
+router.get("/me", auth, getUserPost);
+router.post("/", auth, createPost);
+router.get("/:id", getPostById);
 router.patch("/:id", auth, updatePost);
 router.delete("/:id", auth, deletePost);
 

@@ -12,6 +12,7 @@ require("express-async-errors");
 const userRouter = require("./Routes/usersRoutes");
 const postRouter = require("./Routes/postsRoutes");
 const authRouter = require("./Routes/authRoutes");
+const likeRouter = require("./Routes/likesRoutes");
 
 const logger = require("./utils/logger");
 const AppError = require("./utils/App.Error");
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
 app.use("/users", userRouter);
 app.use("/posts", postRouter);
 app.use("/api/auth", authRouter);
+app.use("/likes", likeRouter);
 
 app.all("/*", (req, res, next) => {
   throw new AppError(
