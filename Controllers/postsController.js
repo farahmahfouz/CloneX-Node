@@ -1,6 +1,6 @@
 const Post = require("./../Models/postsModel");
 const Like = require("../Models/likesModel");
-const AppError = require("./../utils/App.Error");
+const AppError = require("../utils/AppError");
 const mongoose = require("mongoose");
 const postSchema  = require("../validation/postValidation");
 
@@ -182,7 +182,9 @@ exports.updatePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const { content } = req.body;
+
     const post = await Post.findById(postId);
+
     if (!post) {
       throw new AppError("No Post Found By This ID", 404);
     }
@@ -194,6 +196,7 @@ exports.updatePost = async (req, res) => {
       { content },
       { new: true }
     );
+
     if (!updatePost) {
       throw new AppError("No Post Found By This ID", 404);
     }

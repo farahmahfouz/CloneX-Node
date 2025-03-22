@@ -1,5 +1,5 @@
 const Like = require("../Models/likesModel");
-const AppError = require("../utils/App.Error");
+const AppError = require("../utils/AppError");
 const mongoose = require("mongoose");
 
 exports.addLike = async (req, res, next) => {
@@ -10,7 +10,7 @@ exports.addLike = async (req, res, next) => {
     const like = await Like.findOne({ postId, userId });
 
     if (like) {
-      return res.status(400).send({ message: "You have already liked this post." });
+      return res.status(400).send({ message: "You have already liked this post." });56
     }
 
     const newLike = await Like.create({ postId, userId });
@@ -28,9 +28,8 @@ exports.addLike = async (req, res, next) => {
 exports.removeLike = async (req, res, next) => {
   try {
     const postId = req.params.postId;
-    console.log('PostID', postId)
     const userId = req.user;
-    console.log('UserId', userId)
+    
     const like = await Like.findOneAndDelete({ postId, userId });
 
     if (!like) {

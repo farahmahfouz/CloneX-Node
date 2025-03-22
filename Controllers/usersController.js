@@ -1,12 +1,11 @@
 const User = require("./../Models/usersModel");
-const AppError = require("./../utils/App.Error");
-const bcrypt = require("bcryptjs");
+const AppError = require("../utils/AppError");
 const jwt = require("jsonwebtoken");
 const { signupSchema, loginSchema } = require("../validation/userValidation");
 
 exports.getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select("-password");;
+    const users = await User.find().select("-password");
     if (!users) {
       throw new AppError("No users Found", 404);
     }
@@ -23,7 +22,7 @@ exports.getAllUsers = async (req, res, next) => {
 exports.getOneUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await User.findById(userId).select("-password");;
+    const user = await User.findById(userId).select("-password");
     if (!user) {
       throw new AppError("No User Found", 404);
     }
@@ -36,7 +35,6 @@ exports.getOneUser = async (req, res, next) => {
     console.log(error);
   }
 };
-
 
 exports.updateUser = async (req, res, next) => {
   try {
@@ -62,13 +60,11 @@ exports.updateUser = async (req, res, next) => {
 exports.deleteUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await User.findByIdAndDelete(userId);
-    if (!user) {
-      throw new AppError("User Not Found with This ID", 404);
-    }
+    await User.findByIdAndUpdate(userId, { active: false });
+
     res.status(200).send({
       status: "success",
-      data: {},
+      data: null,
     });
   } catch (error) {
     console.log(error);
@@ -81,7 +77,7 @@ exports.signup = async (req, res, next) => {
     if (error) return next(new AppError(error.details[0].message, 400));
 
     const { name, email, password, dateOfBirth } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 8);
+
     //see if the user exists or not
     const existEmail = await User.findOne({ email });
     if (existEmail)
@@ -93,7 +89,7 @@ exports.signup = async (req, res, next) => {
       name,
       email,
       role: "user",
-      password: hashedPassword,
+      password,
       dateOfBirth,
     });
 
@@ -111,19 +107,15 @@ exports.signup = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    // const { error } = loginSchema.validate(req.body, { abortEarly: true });
-    // if (error) return next(new AppError(error.details[0].message, 400));
+    const { error } = loginSchema.validate(req.body, { abortEarly: true });
+    if (error) return next(new AppError(error.details[0].message, 400));
 
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw new AppError("email or password is Invalid", 404);
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
+    const user = await User.findOne({ email }).select("+password");
 
-    if (!isMatch) {
-      throw new AppError("email or password is Invalid", 404);
+    if (!user || !(await user.correctPassword(password, user.password))) {
+      return next(new AppError("email or password is Invalid", 404));
     }
 
     const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
