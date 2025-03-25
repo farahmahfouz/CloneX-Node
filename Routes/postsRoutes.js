@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 const {
   getAllPosts,
@@ -7,14 +7,14 @@ const {
   updatePost,
   deletePost,
   getUserPost,
-} = require("./../Controllers/postsController");
-const { auth } = require("../Middlewares/authMiddleware");
+} = require('./../Controllers/postsController');
+const { auth } = require('../Middlewares/authMiddleware');
 
-router.get("/", getAllPosts);
-router.get("/me", auth, getUserPost);
-router.post("/", auth, createPost);
-router.get("/:id", getPostById);
-router.patch("/:id", auth, updatePost);
-router.delete("/:id", auth, deletePost);
+router.get('/', getAllPosts);
+router.get('/me', auth, getUserPost);
+router.post('/', auth, createPost);
+router.get('/:id', getPostById);
+router.patch('/:id', auth, updatePost);
+router.delete('/:id', auth, deletePost);
 
 module.exports = router;

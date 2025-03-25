@@ -1,6 +1,6 @@
-const Like = require("../Models/likesModel");
-const AppError = require("../utils/AppError");
-const mongoose = require("mongoose");
+const Like = require('../Models/likesModel');
+const AppError = require('../utils/AppError');
+const mongoose = require('mongoose');
 
 exports.addLike = async (req, res, next) => {
   try {
@@ -10,18 +10,21 @@ exports.addLike = async (req, res, next) => {
     const like = await Like.findOne({ postId, userId });
 
     if (like) {
-      return res.status(400).send({ message: "You have already liked this post." });56
+      return res
+        .status(400)
+        .send({ message: 'You have already liked this post.' });
+      56;
     }
 
     const newLike = await Like.create({ postId, userId });
 
     res.status(201).send({
-      message: "Like added successfully.",
+      message: 'Like added successfully.',
       like: newLike,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).send({ message: "Server error." });
+    res.status(500).send({ message: 'Server error.' });
   }
 };
 
@@ -29,16 +32,16 @@ exports.removeLike = async (req, res, next) => {
   try {
     const postId = req.params.postId;
     const userId = req.user;
-    
+
     const like = await Like.findOneAndDelete({ postId, userId });
 
     if (!like) {
-      throw new AppError("Like not found", 404);
+      throw new AppError('Like not found', 404);
     }
 
-    res.status(200).send({ message: "Like removed successfully." });
+    res.status(200).send({ message: 'Like removed successfully.' });
   } catch (err) {
     console.error(err);
-    res.status(500).send({ message: "Server error." });
+    res.status(500).send({ message: 'Server error.' });
   }
 };

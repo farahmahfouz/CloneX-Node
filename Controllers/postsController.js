@@ -1,8 +1,8 @@
-const Post = require("./../Models/postsModel");
-const Like = require("../Models/likesModel");
-const AppError = require("../utils/AppError");
-const mongoose = require("mongoose");
-const postSchema  = require("../validation/postValidation");
+const Post = require('./../Models/postsModel');
+const Like = require('../Models/likesModel');
+const AppError = require('../utils/AppError');
+const mongoose = require('mongoose');
+const postSchema = require('../validation/postValidation');
 
 exports.getAllPosts = async (req, res) => {
   try {
@@ -10,51 +10,51 @@ exports.getAllPosts = async (req, res) => {
     const posts = await Post.aggregate([
       {
         $lookup: {
-          from: "users",
-          localField: "userId",
-          foreignField: "_id",
-          as: "user",
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'user',
         },
       },
       {
-        $unwind: "$user",
+        $unwind: '$user',
       },
       {
         $lookup: {
-          from: "likes",
-          localField: "_id",
-          foreignField: "postId",
-          as: "likes",
+          from: 'likes',
+          localField: '_id',
+          foreignField: 'postId',
+          as: 'likes',
         },
       },
       {
         $lookup: {
-          from: "likes",
-          let: { postId: "$_id" },
+          from: 'likes',
+          let: { postId: '$_id' },
           pipeline: [
-            { $match: { $expr: { $eq: ["$postId", "$$postId"] } } },
+            { $match: { $expr: { $eq: ['$postId', '$$postId'] } } },
             {
               $lookup: {
-                from: "users",
-                localField: "userId",
-                foreignField: "_id",
-                as: "userDetails",
+                from: 'users',
+                localField: 'userId',
+                foreignField: '_id',
+                as: 'userDetails',
               },
             },
-            { $unwind: "$userDetails" },
+            { $unwind: '$userDetails' },
             {
               $project: {
                 _id: 1,
-                user: { _id: "$userDetails._id", name: "$userDetails.name" },
+                user: { _id: '$userDetails._id', name: '$userDetails.name' },
               },
             },
           ],
-          as: "likesWithUsers",
+          as: 'likesWithUsers',
         },
       },
       {
         $addFields: {
-          totalLikes: { $size: "$likesWithUsers" },
+          totalLikes: { $size: '$likesWithUsers' },
         },
       },
       {
@@ -71,18 +71,18 @@ exports.getAllPosts = async (req, res) => {
     ]);
 
     if (!posts) {
-      throw new AppError("No Posts Found", 404);
+      throw new AppError('No Posts Found', 404);
     }
     res.status(200).send({
-      status: "success",
-      message: "All Posts retrieved successfully",
+      status: 'success',
+      message: 'All Posts retrieved successfully',
       data: { posts },
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "error",
-      message: "Something went wrong",
+      status: 'error',
+      message: 'Something went wrong',
     });
   }
 };
@@ -93,7 +93,7 @@ exports.getPostById = async (req, res) => {
 
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      return res.status(404).json({ message: 'Post not found' });
     }
 
     // Get likes with user details
@@ -103,21 +103,21 @@ exports.getPostById = async (req, res) => {
       },
       {
         $lookup: {
-          from: "users",
-          localField: "userId",
-          foreignField: "_id",
-          as: "userDetails",
+          from: 'users',
+          localField: 'userId',
+          foreignField: '_id',
+          as: 'userDetails',
         },
       },
       {
-        $unwind: "$userDetails",
+        $unwind: '$userDetails',
       },
       {
         $project: {
           _id: 1,
           user: {
-            _id: "$userDetails._id",
-            name: "$userDetails.name",
+            _id: '$userDetails._id',
+            name: '$userDetails.name',
           },
         },
       },
@@ -136,18 +136,18 @@ exports.getPostById = async (req, res) => {
 exports.getUserPost = async (req, res) => {
   try {
     const id = req.user._id;
-    const posts = await Post.find({ userId: id }).populate("userId", "name");
+    const posts = await Post.find({ userId: id }).populate('userId', 'name');
 
     res.status(200).send({
-      status: "success",
-      message: "Posts of Currently user retrieved successfully",
+      status: 'success',
+      message: 'Posts of Currently user retrieved successfully',
       data: { posts },
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "error",
-      message: "Something went wrong",
+      status: 'error',
+      message: 'Something went wrong',
     });
   }
 };
@@ -165,15 +165,15 @@ exports.createPost = async (req, res) => {
     });
 
     res.status(201).send({
-      status: "success",
-      message: "Post created successfully",
+      status: 'success',
+      message: 'Post created successfully',
       data: { createPost },
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "error",
-      message: "Something went wrong",
+      status: 'error',
+      message: 'Something went wrong',
     });
   }
 };
@@ -186,10 +186,10 @@ exports.updatePost = async (req, res) => {
     const post = await Post.findById(postId);
 
     if (!post) {
-      throw new AppError("No Post Found By This ID", 404);
+      throw new AppError('No Post Found By This ID', 404);
     }
     if (post.userId.toString() !== req.user._id.toString()) {
-      throw new AppError("Unauthorized to update this post", 403);
+      throw new AppError('Unauthorized to update this post', 403);
     }
     const updatePost = await Post.findByIdAndUpdate(
       postId,
@@ -198,18 +198,18 @@ exports.updatePost = async (req, res) => {
     );
 
     if (!updatePost) {
-      throw new AppError("No Post Found By This ID", 404);
+      throw new AppError('No Post Found By This ID', 404);
     }
     res.status(200).send({
-      status: "success",
-      message: "Post updated successfully",
+      status: 'success',
+      message: 'Post updated successfully',
       data: { updatePost },
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "error",
-      message: "Something went wrong",
+      status: 'error',
+      message: 'Something went wrong',
     });
   }
 };
@@ -219,25 +219,25 @@ exports.deletePost = async (req, res) => {
     const postId = req.params.id;
     const post = await Post.findById(postId);
     if (!post) {
-      throw new AppError("No Post Found By This ID", 404);
+      throw new AppError('No Post Found By This ID', 404);
     }
     if (post.userId.toString() !== req.user._id.toString()) {
-      throw new AppError("Unauthorized to delete this post", 403);
+      throw new AppError('Unauthorized to delete this post', 403);
     }
     const deletePost = await Post.findByIdAndDelete(postId);
 
     if (!deletePost) {
-      throw new AppError("No Post Found By This ID", 404);
+      throw new AppError('No Post Found By This ID', 404);
     }
     res.status(204).send({
-      status: "success",
-      message: "Post deleted successfully",
+      status: 'success',
+      message: 'Post deleted successfully',
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      status: "error",
-      message: "Something went wrong",
+      status: 'error',
+      message: 'Something went wrong',
     });
   }
 };
