@@ -157,11 +157,14 @@ exports.createPost = async (req, res) => {
     const { error } = postSchema.validate(req.body, { abortEarly: true });
     if (error) return next(new AppError(error.details[0].message, 400));
 
+    const images = req.body.images || [];
+
     const id = req.user._id;
     const { content } = req.body;
     const createPost = await Post.create({
       content,
       userId: id,
+      images,
     });
 
     res.status(201).send({
@@ -183,27 +186,38 @@ exports.updatePost = async (req, res) => {
     const postId = req.params.id;
     const { content } = req.body;
 
+    const images = Array.isArray(req.body.images) ? req.body.images : [];
     const post = await Post.findById(postId);
 
     if (!post) {
       throw new AppError('No Post Found By This ID', 404);
     }
+
     if (post.userId.toString() !== req.user._id.toString()) {
       throw new AppError('Unauthorized to update this post', 403);
     }
-    const updatePost = await Post.findByIdAndUpdate(
-      postId,
-      { content },
-      { new: true }
-    );
-
-    if (!updatePost) {
-      throw new AppError('No Post Found By This ID', 404);
+    if (!content && images.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'At least one field (content or images) is required',
+      });
     }
+
+    if (content) post.content = content;
+    if (images.length > 0) post.images = images;
+
+    // const updatePost = await Post.findByIdAndUpdate(
+    //   postId,
+    //   { content, images },
+    //   { new: true }
+    // );
+
+    await post.save();
+
     res.status(200).send({
       status: 'success',
       message: 'Post updated successfully',
-      data: { updatePost },
+      data: { post },
     });
   } catch (error) {
     console.log(error);

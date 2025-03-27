@@ -20,6 +20,12 @@ const globalErrorMiddleware = require('./Middlewares/globalErrorMiddleware');
 
 const app = express();
 
+process.on('uncaughtException', function(err) {
+  logger.error('Uncaught exception', err);
+  logger.error(err.name, err.message)
+  process.exit(1);
+})
+
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(cors());

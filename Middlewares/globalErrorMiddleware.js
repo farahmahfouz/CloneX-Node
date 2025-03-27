@@ -1,4 +1,4 @@
-const logger = require('../Utils/logger');
+const logger = require('../utils/logger');
 
 // Middleware for handling errors globally
 module.exports = (err, req, res, next) => {
