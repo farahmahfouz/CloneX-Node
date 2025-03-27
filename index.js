@@ -16,6 +16,7 @@ const likeRouter = require('./Routes/likesRoutes');
 
 const logger = require('./utils/logger');
 const AppError = require('./utils/AppError');
+const globalErrorMiddleware = require('./Middlewares/globalErrorMiddleware');
 
 const app = express();
 
@@ -41,6 +42,8 @@ app.all('/*', (req, res, next) => {
     404
   );
 });
+
+app.use(globalErrorMiddleware);
 
 mongoose
   .connect(process.env.DATABASE_URL)
