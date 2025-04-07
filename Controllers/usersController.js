@@ -1,6 +1,8 @@
 const User = require('./../Models/usersModel');
+const Post = require('./../Models/postsModel');
 const AppError = require('../utils/AppError');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const { signupSchema, loginSchema } = require('../validation/userValidation');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
@@ -59,15 +61,25 @@ exports.updateUser = async (req, res, next) => {
 };
 
 exports.deleteUser = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const userId = req.params.id;
-    await User.findByIdAndUpdate(userId, { active: false });
+    // 1. Update user to be inactive
+    await User.findByIdAndUpdate(userId, { active: false }, { session });
+    // 2. Delete all posts by that user
+    await Post.deleteMany({ userId }, { session });
+    // 3. Commit transaction
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).send({
       status: 'success',
       data: null,
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.log(error);
   }
 };
