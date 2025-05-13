@@ -31,13 +31,16 @@ process.on('uncaughtException', function (err) {
   logger.error(err.name, err.message);
   process.exit(1);
 });
+
+app.set('trust proxy', 1);
+
 app.use(helmet());
 
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ['http://localhost:5173' || 'https://clone-x-khaki.vercel.app'], 
+    origin: ['http://localhost:5173', 'https://clone-x-khaki.vercel.app'], 
     credentials: true,
   })
 );
