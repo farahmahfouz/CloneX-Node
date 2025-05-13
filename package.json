@@ -28,7 +28,7 @@
   },
   "scripts": {
     "start": "nodemon index.js",
-    "start:prod": "cross-env NODE_ENV=production nodemon index.js"
+    "start:prod": "cross-env NODE_ENV=production node index.js"
   },
   "engines": {
     "node": ">=16"
