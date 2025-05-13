@@ -7,9 +7,12 @@ const {
   updatePost,
   deletePost,
   getUserPost,
+  checkID,
 } = require('./../Controllers/postsController');
 const { auth } = require('../Middlewares/authMiddleware');
 const { uploadImages, handleImages } = require('../utils/images');
+
+router.param('id', checkID);
 
 router.get('/', getAllPosts);
 router.get('/me', auth, getUserPost);

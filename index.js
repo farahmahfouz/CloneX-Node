@@ -2,6 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
+const helmet = require('helmet');
+const rateLimiter = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const path = require('path')
+// const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const passport = require('passport');
 
@@ -20,18 +26,39 @@ const globalErrorMiddleware = require('./Middlewares/globalErrorMiddleware');
 
 const app = express();
 
-process.on('uncaughtException', function(err) {
+process.on('uncaughtException', function (err) {
   logger.error('Uncaught exception', err);
-  logger.error(err.name, err.message)
+  logger.error(err.name, err.message);
   process.exit(1);
-})
+});
+app.use(helmet());
 
 app.use(morgan('dev'));
 app.use(cookieParser());
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: 'http://localhost:5173', 
+    credentials: true,
+  })
+);
+app.use(express.json({ limit: '10kb' }));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
+
+app.use(mongoSanitize());
+app.use(xss());
 
 app.use(passport.initialize());
+
+const limiter = rateLimiter({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP, please try again in an hour!',
+});
+
+app.use('/', limiter);
+
+// app.use(hpp());
 
 app.get('/', (req, res) => {
   res.send('Hello From Another World');

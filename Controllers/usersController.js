@@ -6,6 +6,12 @@ const mongoose = require('mongoose');
 const { signupSchema, loginSchema } = require('../validation/userValidation');
 const sendEmail = require('../utils/email');
 const crypto = require('crypto');
+
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+  next();
+};
+
 exports.getAllUsers = async (req, res, next) => {
   try {
     const users = await User.find().select('-password');
@@ -25,7 +31,7 @@ exports.getAllUsers = async (req, res, next) => {
 exports.getOneUser = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await User.findById(userId).select('-password');
+    const user = await User.findById(userId);
     if (!user) {
       throw new AppError('No User Found', 404);
     }
@@ -144,7 +150,7 @@ exports.login = async (req, res, next) => {
 
     res.cookie('jwt', refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: 'None',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

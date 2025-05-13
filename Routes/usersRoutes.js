@@ -10,10 +10,12 @@ const {
   refresh,
   forgotPassword,
   resetPassword,
+  getMe,
 } = require('./../Controllers/usersController');
+const { auth } = require('../Middlewares/authMiddleware');
 
 router.get('/', getAllUsers);
-router.get('/:id', getOneUser);
+router.get('/me', auth, getMe, getOneUser);
 router.patch('/:id', updateUser);
 router.delete('/:id', deleteUser);
 

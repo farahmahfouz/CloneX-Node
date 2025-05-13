@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: String,
+      default: 'default.jpg'
+    },
     dateOfBirth: {
       type: Date,
       required: true,
@@ -73,7 +77,7 @@ userSchema.methods.createPasswordResetToken = function () {
 
 userSchema.methods.changePasswordAfter = function (JWTTimesStamp) {
   if (this.passwordChangedAt) {
-    const changedTimeStamp = parseInt(this.passwordChangedAt.getTime(), 10);
+    const changedTimeStamp = parseInt(this.passwordChangedAt.getTime()/ 1000, 10);
     return JWTTimesStamp < changedTimeStamp;
   }
   return false;
