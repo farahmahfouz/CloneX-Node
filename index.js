@@ -53,13 +53,13 @@ app.use(xss());
 
 app.use(passport.initialize());
 
-const limiter = rateLimiter({
-  max: 100,
-  windowMs: 60 * 60 * 1000,
-  message: 'Too many requests from this IP, please try again in an hour!',
-});
+// const limiter = rateLimiter({
+//   max: 100,
+//   windowMs: 60 * 60 * 1000,
+//   message: 'Too many requests from this IP, please try again in an hour!',
+// });
 
-app.use('/', limiter);
+// app.use('/', limiter);
 
 // app.use(hpp());
 

@@ -17,5 +17,13 @@ const postSchema = new mongoose.Schema(
   }
 );
 
+postSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'userId',
+    select: '_id name image',
+  });
+  next();
+});
+
 const Post = mongoose.model('Post', postSchema);
 module.exports = Post;

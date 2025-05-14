@@ -1,69 +1,10 @@
 const Post = require('./../Models/postsModel');
-const Like = require('../Models/likesModel');
 const AppError = require('../utils/AppError');
-const mongoose = require('mongoose');
 const postSchema = require('../validation/postValidation');
-
-exports.checkID = async (req, res, next, val) => {
-  console.log(`Tour id is: ${val}`);
-  const post = await Post.findById(req.params.id);
-  if (!post) {
-    return res.status(404).json({ status: 'Fail', message: 'Post not found' });
-  }
-  req.post = post;
-  next();
-};
 
 exports.getAllPosts = async (req, res) => {
   try {
-    // const posts = await Post.aggregate([
-    //   {
-    //     $lookup: {
-    //       from: 'users',
-    //       let: { userId: '$userId' },
-    //       pipeline: [
-    //         {
-    //           $match: {
-    //             $expr: {
-    //               $eq: ['$_id', '$$userId']
-    //             }
-    //           }
-    //         },
-    //         {
-    //           $project: {
-    //             _id: 1,
-    //             name: 1,
-    //             image: 1
-    //           }
-    //         }
-    //       ],
-    //       as: 'user'
-    //     }
-    //   },
-    //   {
-    //     $unwind: '$user',
-    //   },
-    //   {
-    //     $project: {
-    //       _id: 1,
-    //       content: 1,
-    //       images: 1,
-    //       createdAt: 1,
-    //       updatedAt: 1,
-    //       user: {
-    //         _id: '$user._id',
-    //         name: '$user.name',
-    //         image: '$user.image'
-    //       },
-    //     },
-    //   },
-    // ]);
-
-    const posts = await Post.find().populate({
-      path: 'userId',
-      select: '_id name image',
-    });
-
+    const posts = await Post.find();
     if (!posts) {
       throw new AppError('No Posts Found', 404);
     }
@@ -83,39 +24,12 @@ exports.getAllPosts = async (req, res) => {
 
 exports.getPostById = async (req, res) => {
   try {
-    const post = req.post;
-
-    // Get likes with user details
-    const likes = await Like.aggregate([
-      {
-        $match: { postId: post._id },
-      },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'userId',
-          foreignField: '_id',
-          as: 'userDetails',
-        },
-      },
-      {
-        $unwind: '$userDetails',
-      },
-      {
-        $project: {
-          _id: 1,
-          user: {
-            _id: '$userDetails._id',
-            name: '$userDetails.name',
-          },
-        },
-      },
-    ]);
+    const id = req.params.id;
+    const post = await Post.findById(id);
 
     res.status(200).json({
-      ...post.toObject(),
-      likesWithUsers: likes,
-      totalLikes: likes.length,
+      status: 'success',
+      data: { post },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -125,7 +39,7 @@ exports.getPostById = async (req, res) => {
 exports.getUserPost = async (req, res) => {
   try {
     const id = req.user._id;
-    const posts = await Post.find({ userId: id }).populate('userId', 'name');
+    const posts = await Post.find({ userId: id });
 
     res.status(200).send({
       status: 'success',
