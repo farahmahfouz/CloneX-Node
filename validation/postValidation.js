@@ -1,6 +1,6 @@
 const Joi = require("joi");
 
-postSchema = Joi.object({
+exports.postSchema = Joi.object({
   content: Joi.string().min(1).max(496).required().messages({
     "string.max": "Content cannot exceed 496 characters.",
   }),
@@ -9,5 +9,3 @@ postSchema = Joi.object({
     "array.max": "No more than 3 images are allowed."
   })
 });
-
-module.exports = postSchema;

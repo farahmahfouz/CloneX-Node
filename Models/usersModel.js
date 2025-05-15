@@ -14,11 +14,6 @@ const userSchema = new mongoose.Schema(
       required: true,
       lowercase: true,
     },
-    role: {
-      type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
-    },
     password: {
       type: String,
       required: true,
@@ -30,6 +25,7 @@ const userSchema = new mongoose.Schema(
     dateOfBirth: {
       type: Date,
       required: true,
+      select: false
     },
     active: {
       type: Boolean,

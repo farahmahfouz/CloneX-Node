@@ -7,11 +7,11 @@ const {
   updatePost,
   deletePost,
   getUserPost,
-  checkID,
 } = require('./../Controllers/postsController');
 const { auth } = require('../Middlewares/authMiddleware');
 const { uploadImages, handleImages } = require('../utils/images');
-
+const { validate } = require('../validation/userValidation');
+const { postSchema } = require('../validation/postValidation');
 
 router.get('/', getAllPosts);
 router.get('/me', auth, getUserPost);
@@ -20,6 +20,7 @@ router.post(
   auth,
   uploadImages([{ name: 'images', count: 3 }]),
   handleImages('images'),
+  validate(postSchema),
   createPost
 );
 router.get('/:id', getPostById);
