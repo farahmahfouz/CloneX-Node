@@ -13,7 +13,6 @@ exports.addLike = async (req, res, next) => {
       return res
         .status(400)
         .send({ message: 'You have already liked this post.' });
-      56;
     }
 
     const newLike = await Like.create({ postId, userId });

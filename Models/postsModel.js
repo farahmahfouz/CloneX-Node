@@ -7,7 +7,7 @@ const postSchema = new mongoose.Schema(
       required: true,
     },
     images: [String],
-    userId: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
@@ -19,7 +19,7 @@ const postSchema = new mongoose.Schema(
 
 postSchema.pre(/^find/, function (next) {
   this.populate({
-    path: 'userId',
+    path: 'user',
     select: '_id name image',
   });
   next();

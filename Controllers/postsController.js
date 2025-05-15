@@ -64,7 +64,7 @@ exports.updatePost = catchAsync(async (req, res, next) => {
 
   if (!post) return next(new AppError('Post not found', 404));
 
-  if (!isPostOwner(post.userId, req.user._id))
+  if (!isPostOwner(post.user._id, req.user._id))
     return next(new AppError('Unauthorized to update this post', 403));
 
   const updatePost = await Post.findByIdAndUpdate(
@@ -86,7 +86,7 @@ exports.deletePost = catchAsync(async (req, res, next) => {
 
   if (!post) return next(new AppError('No Post Found By This ID', 404));
 
-  if (!isPostOwner(post.userId, req.user._id)) {
+  if (!isPostOwner(post.user._id, req.user._id)) {
     return next(new AppError('Unauthorized to delete this post', 403));
   }
 
