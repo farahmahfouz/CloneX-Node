@@ -3,12 +3,6 @@ const AppError = require('../utils/AppError');
 const mongoose = require('mongoose');
 const catchAsync = require('../utils/catchAsync');
 
-exports.setPostsUserIds = (req, res, next) => {
-  if (!req.body.post) req.body.post = req.params.postId;
-  if (!req.body.user) req.body.user = req.user.id;
-  next();
-};
-
 exports.getAllLikes = catchAsync(async (req, res, next) => {
   let filter = {};
   if (req.params.postId) filter = { post: req.params.postId };
