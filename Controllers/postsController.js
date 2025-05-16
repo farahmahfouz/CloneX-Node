@@ -6,7 +6,7 @@ const isPostOwner = (postUserId, currentUserId) =>
   postUserId.toString() === currentUserId.toString();
 
 exports.getAllPosts = catchAsync(async (req, res) => {
-  const posts = await Post.find().sort({ createdAt: -1 });
+  const posts = await Post.find();
   if (!posts) {
     throw new AppError('No Posts Found', 404);
   }

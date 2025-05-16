@@ -10,7 +10,8 @@ module.exports = (err, req, res, next) => {
     err.statusCode = 400;
   }
   if (err.code === 11000) {
-    const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+    const value = Object.values(err.keyValue)[0];
+    // const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
     err.message = `Duplicate field value: ${value}. Please use another value!`;
     err.statusCode = 400;
     err.name = 'DuplicateDBFields';

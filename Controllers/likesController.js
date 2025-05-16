@@ -1,46 +1,50 @@
 const Like = require('../Models/likesModel');
 const AppError = require('../utils/AppError');
 const mongoose = require('mongoose');
+const catchAsync = require('../utils/catchAsync');
 
-exports.addLike = async (req, res, next) => {
-  try {
-    const postId = new mongoose.Types.ObjectId(req.params.postId);
-    const userId = req.user._id;
-
-    const like = await Like.findOne({ postId, userId });
-
-    if (like) {
-      return res
-        .status(400)
-        .send({ message: 'You have already liked this post.' });
-    }
-
-    const newLike = await Like.create({ postId, userId });
-
-    res.status(201).send({
-      message: 'Like added successfully.',
-      like: newLike,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: 'Server error.' });
-  }
+exports.setPostsUserIds = (req, res, next) => {
+  if (!req.body.post) req.body.post = req.params.postId;
+  if (!req.body.user) req.body.user = req.user.id;
+  next();
 };
 
-exports.removeLike = async (req, res, next) => {
-  try {
-    const postId = req.params.postId;
-    const userId = req.user;
+exports.getAllLikes = catchAsync(async (req, res, next) => {
+  let filter = {};
+  if (req.params.postId) filter = { post: req.params.postId };
+  const likes = await Like.find(filter);
 
-    const like = await Like.findOneAndDelete({ postId, userId });
+  res.status(200).json({
+    status: 'success',
+    results: likes.length,
+    data: { likes },
+  });
+});
 
-    if (!like) {
-      throw new AppError('Like not found', 404);
-    }
 
-    res.status(200).send({ message: 'Like removed successfully.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send({ message: 'Server error.' });
-  }
-};
+exports.addLike = catchAsync(async (req, res, next) => {
+  const postId = new mongoose.Types.ObjectId(req.params.postId);
+  const userId = req.user._id;
+
+  const like = await Like.findOne({ post: postId, user: userId });
+
+  if (like) return next(new AppError('You have already liked this post.', 400));
+
+  const newLike = await Like.create({ post: postId, user: userId });
+
+  res.status(201).send({
+    message: 'Like added successfully.',
+    like: newLike,
+  });
+});
+
+exports.removeLike = catchAsync(async (req, res, next) => {
+  const postId = new mongoose.Types.ObjectId(req.params.postId);
+  const userId = req.user._id;
+
+  const like = await Like.findOneAndDelete({ post: postId, user: userId });
+
+  if (!like) return next(new AppError('Like not found', 404));
+
+  res.status(200).send({ message: 'Like removed successfully.' });
+});

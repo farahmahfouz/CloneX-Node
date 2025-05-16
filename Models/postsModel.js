@@ -14,6 +14,8 @@ const postSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
@@ -21,7 +23,20 @@ postSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'userId',
     select: '_id name image',
-  });
+  }).populate('likesCount');
+  next();
+});
+
+postSchema.virtual('likesCount', {
+  ref: 'Like',
+  foreignField: 'post',
+  localField: '_id',
+  count: true
+});
+
+
+postSchema.pre(/^find/, function (next) {
+  this.sort({ createdAt: -1 });
   next();
 });
 

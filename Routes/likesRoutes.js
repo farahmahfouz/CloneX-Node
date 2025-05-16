@@ -1,11 +1,13 @@
 const express = require('express');
-const { addLike, removeLike } = require('../Controllers/likesController');
-const router = express.Router();
+const { addLike, removeLike, setPostsUserIds, getAllLikes } = require('../Controllers/likesController');
+const router = express.Router({mergeParams: true});
 
 const { auth } = require('../Middlewares/authMiddleware');
 
-router.post('/:postId/like', auth, addLike);
+router.get('/', getAllLikes);
 
-router.delete('/:postId/like', auth, removeLike);
+router.post('/', auth, setPostsUserIds, addLike);
+
+router.delete('/', auth, removeLike);
 
 module.exports = router;

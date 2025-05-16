@@ -12,6 +12,9 @@ const { auth } = require('../Middlewares/authMiddleware');
 const { uploadImages, handleImages } = require('../utils/images');
 const { validate } = require('../validation/userValidation');
 const { postSchema } = require('../validation/postValidation');
+const likesRoute = require('../Routes/likesRoutes');
+
+router.use('/:postId/likes', likesRoute);
 
 router.get('/', getAllPosts);
 router.get('/me', auth, getUserPost);
