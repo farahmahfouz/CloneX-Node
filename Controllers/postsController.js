@@ -1,6 +1,7 @@
 const Post = require('./../Models/postsModel');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
+const Like = require('../Models/likesModel');
 
 const isPostOwner = (postUserId, currentUserId) =>
   postUserId.toString() === currentUserId.toString();
@@ -10,10 +11,23 @@ exports.getAllPosts = catchAsync(async (req, res) => {
   if (!posts) {
     throw new AppError('No Posts Found', 404);
   }
+  
+  let likedPostIds = [];
+
+  if (req.user) {
+    const likes = await Like.find({ user: req.user._id, post: { $in: posts.map(p => p._id) } });
+    likedPostIds = likes.map(like => like.post.toString());
+  }
+  
+  const postsWithLikes = posts.map(post => ({
+    ...post.toObject(),
+    isLiked: likedPostIds.includes(post._id.toString()),
+  }));
+
   res.status(200).send({
     status: 'success',
     message: 'All Posts retrieved successfully',
-    data: { posts },
+    data: { posts: postsWithLikes },
   });
 });
 

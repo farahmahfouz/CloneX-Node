@@ -16,7 +16,7 @@ const likesRoute = require('../Routes/likesRoutes');
 
 router.use('/:postId/likes', likesRoute);
 
-router.get('/', getAllPosts);
+router.get('/', auth, getAllPosts);
 router.get('/me', auth, getUserPost);
 router.post(
   '/',

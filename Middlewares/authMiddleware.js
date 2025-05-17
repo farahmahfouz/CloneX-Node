@@ -11,23 +11,27 @@ exports.auth = async (req, res, next) => {
 
   token = token.startsWith('Bearer ') ? token.split(' ')[1] : token;
 
-  const payload = jwt.verify(token, process.env.JWT_SECRET);
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-  if (!payload) {
-    throw new AppError('Invalid token', 401);
-  }
+    if (!payload) {
+      throw new AppError('Invalid token', 401);
+    }
 
-  const user = await User.findById(payload.id);
+    const user = await User.findById(payload.id);
 
-  if (!user) {
-    throw new AppError('Unauthorized', 401);
+    if (!user) {
+      throw new AppError('Unauthorized', 401);
+    }
+    if (user.changePasswordAfter(payload.iat)) {
+      return next(
+        new AppError('Password recently changed. Please log in again', 401)
+      );
+    }
+    req.user = user;
+  } catch (err) {
+    req.user = undefined;
   }
-  if (user.changePasswordAfter(payload.iat)) {
-    return next(
-      new AppError('Password recently changed. Please log in again', 401)
-    );
-  }
-  req.user = user;
   next();
 };
 

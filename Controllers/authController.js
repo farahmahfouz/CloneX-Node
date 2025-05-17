@@ -1,5 +1,4 @@
 const User = require('./../Models/usersModel');
-const Post = require('./../Models/postsModel');
 const AppError = require('../utils/AppError');
 const sendEmail = require('../utils/email');
 const catchAsync = require('../utils/catchAsync');
