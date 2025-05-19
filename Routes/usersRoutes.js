@@ -3,9 +3,10 @@ const router = express.Router();
 const {
   getAllUsers,
   getOneUser,
-  updateUser,
+  updateMe,
   deleteUser,
   getMe,
+  updatePassword
 } = require('./../Controllers/usersController');
 const {
   signup,
@@ -20,10 +21,19 @@ const {
   signupSchema,
   loginSchema,
 } = require('../validation/userValidation');
+const { uploadImages, handleImages } = require('../utils/images');
 
 router.get('/', getAllUsers);
+
 router.get('/me', auth, getMe, getOneUser);
-router.patch('/:id', updateUser);
+router.patch(
+  '/updateMe',
+  auth,
+  uploadImages([{ name: 'image', count: 1 }]),
+  handleImages('image'),
+  updateMe
+);
+router.patch('/updateMyPassword', auth, updatePassword);
 router.delete('/:id', deleteUser);
 
 router.post('/refresh', refresh);

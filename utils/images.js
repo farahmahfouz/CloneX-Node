@@ -40,6 +40,7 @@ exports.uploadImages = (fields) => {
 // Middleware to handle and upload images to ImageKit
 exports.handleImages = (fieldname) => {
   return async (req, res, next) => {
+
     const files = req.files?.[fieldname];
 
     if (!files) return next();

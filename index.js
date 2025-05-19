@@ -51,7 +51,7 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use(mongoSanitize());
 app.use(xss());
 
-app.use(passport.initialize());
+// app.use(passport.initialize());
 
 // const limiter = rateLimiter({
 //   max: 100,

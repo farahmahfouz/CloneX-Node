@@ -3,11 +3,22 @@ const Post = require('./../Models/postsModel');
 const mongoose = require('mongoose');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
-
+const { signAccessToken } = require('../utils/jwt');
 
 exports.getMe = (req, res, next) => {
-  req.params.id = req.user.id;
+  if (!req.user) {
+    return next(new AppError('User not authenticated', 401));
+  }
+  req.params.id = req.user._id;
   next();
+};
+
+const filteredObject = (obj, allowedFields) => {
+  let newObj = {};
+  Object.keys(obj).forEach((el) => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+  return newObj;
 };
 
 exports.getAllUsers = catchAsync(async (req, res, next) => {
@@ -33,19 +44,52 @@ exports.getOneUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateUser = catchAsync(async (req, res, next) => {
-  const userId = req.params.id;
-  const { name, email } = req.body;
-  const updateUser = await User.findByIdAndUpdate(
-    userId,
-    { name, email },
-    { new: true }
-  );
-  if (!updateUser) return next(new AppError('User Not Found with This ID', 404));
-  
+exports.updateMe = catchAsync(async (req, res, next) => {
+  if (req.body.password)
+    return next(
+      new AppError(
+        'This route is not for password. Please use /updateMyPassword',
+        400
+      )
+    );
+  const filteredBody = filteredObject(req.body, 'name', 'email');
+
+  if (req.body.image && Array.isArray(req.body.image)) {
+    filteredBody.image = req.body.image[0];
+  }
+
+  const updateUser = await User.findByIdAndUpdate(req.user._id, filteredBody, {
+    new: true,
+    runValidators: true,
+  });
+
   res.status(200).send({
     status: 'success',
     data: { updateUser },
+  });
+});
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select('+password');
+  if (!(await user.correctPassword(req.body.currentPassword, user.password))) {
+    return next(new AppError('Your current password is wrong', 401));
+  }
+  user.password = req.body.password;
+  await user.save();
+
+  const token = signAccessToken(user._id);
+
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    // secure: true,
+    sameSite: 'Lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  user.password = undefined;
+  res.status(201).json({
+    status: 'success',
+    data: { user },
   });
 });
 
@@ -72,4 +116,3 @@ exports.deleteUser = async (req, res, next) => {
     next(error);
   }
 };
-
