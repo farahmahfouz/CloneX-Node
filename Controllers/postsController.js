@@ -1,28 +1,18 @@
 const Post = require('./../Models/postsModel');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
-const Like = require('../Models/likesModel');
 
 const isPostOwner = (postUserId, currentUserId) =>
   postUserId.toString() === currentUserId.toString();
 
 exports.getAllPosts = catchAsync(async (req, res) => {
   const posts = await Post.find();
+
   if (!posts) {
     throw new AppError('No Posts Found', 404);
   }
   
-  let likedPostIds = [];
-
-  if (req.user) {
-    const likes = await Like.find({ user: req.user._id, post: { $in: posts.map(p => p._id) } });
-    likedPostIds = likes.map(like => like.post.toString());
-  }
-  
-  const postsWithLikes = posts.map(post => ({
-    ...post.toObject(),
-    isLiked: likedPostIds.includes(post._id.toString()),
-  }));
+  const postsWithLikes = await Post.attachedIsLiked(posts, req.user._id);
 
   res.status(200).send({
     status: 'success',
@@ -37,20 +27,23 @@ exports.getPostById = catchAsync(async (req, res) => {
   if (!post) {
     throw new AppError('No Post Found', 404);
   }
+  const [postWithLikes] = await Post.attachedIsLiked(post, req.user._id);
+
   res.status(200).json({
     status: 'success',
-    data: { post },
+    data: { post: postWithLikes },
   });
 });
 
 exports.getUserPost = catchAsync(async (req, res) => {
   const id = req.user._id;
   const posts = await Post.find({ userId: id });
+  const postsWithLikes = await Post.attachedIsLiked(posts, req.user._id);
 
   res.status(200).send({
     status: 'success',
     message: 'Posts of Currently user retrieved successfully',
-    data: { posts },
+    data: { posts: postsWithLikes },
   });
 });
 

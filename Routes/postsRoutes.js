@@ -13,21 +13,24 @@ const { uploadImages, handleImages } = require('../utils/images');
 const { validate } = require('../validation/userValidation');
 const { postSchema } = require('../validation/postValidation');
 const likesRoute = require('../Routes/likesRoutes');
+const commentsRoute = require('../Routes/commentsRoutes');
 
 router.use('/:postId/likes', likesRoute);
+router.use('/:postId/comments', commentsRoute);
 
-router.get('/', auth, getAllPosts);
-router.get('/me', auth, getUserPost);
+router.use(auth)
+
+router.get('/', getAllPosts);
+router.get('/me', getUserPost);
 router.post(
   '/',
-  auth,
   uploadImages([{ name: 'images', count: 3 }]),
   handleImages('images'),
   validate(postSchema),
   createPost
 );
 router.get('/:id', getPostById);
-router.patch('/:id', auth, updatePost);
-router.delete('/:id', auth, deletePost);
+router.patch('/:id', updatePost);
+router.delete('/:id', deletePost);
 
 module.exports = router;

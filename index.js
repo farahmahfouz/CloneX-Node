@@ -19,6 +19,8 @@ const userRouter = require('./Routes/usersRoutes');
 const postRouter = require('./Routes/postsRoutes');
 const authRouter = require('./Routes/authRoutes');
 const likeRouter = require('./Routes/likesRoutes');
+const commentRouter = require('./Routes/commentsRoutes');
+
 
 const logger = require('./utils/logger');
 const AppError = require('./utils/AppError');
@@ -71,6 +73,8 @@ app.use('/users', userRouter);
 app.use('/posts', postRouter);
 app.use('/api/auth', authRouter);
 app.use('/likes', likeRouter);
+app.use('/comments', commentRouter);
+
 
 app.all('/*', (req, res, next) => {
   throw new AppError(
