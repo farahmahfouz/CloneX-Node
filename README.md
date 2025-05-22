@@ -54,7 +54,7 @@ MONGODB_URI=your_mongodb_connection_string
 
 4. Start the development server:
 ```bash
-npm run dev
+npm start
 ```
 
 ## 📁 Project Structure

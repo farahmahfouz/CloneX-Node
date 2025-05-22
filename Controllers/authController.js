@@ -30,8 +30,6 @@ exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email }).select('+password');
 
-  console.log(user);
-
   if (!user || !(await user.correctPassword(password, user.password)))
     return next(new AppError('Invalid email or password', 401));
 
@@ -41,7 +39,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   res.cookie('jwt', refreshToken, {
     httpOnly: true,
-    // secure: true,
+    secure: true,
     sameSite: 'Lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });

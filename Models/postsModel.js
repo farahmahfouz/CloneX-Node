@@ -29,12 +29,12 @@ postSchema.statics.attachedIsLiked = async function (posts, userId) {
       user: userId,
       post: { $in: posts.map((p) => p._id) },
     });
-    likedPostIds = likes.map((like) => +like.post);
+    likedPostIds = likes.map((like) => like.post.toString());
   }
 
   return posts.map((post) => ({
     ...post.toObject(),
-    isLiked: likedPostIds.includes(+post._id),
+    isLiked: likedPostIds.includes(post._id.toString()),
   }));
 };
 

@@ -7,12 +7,10 @@ const rateLimiter = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const path = require('path')
-// const hpp = require('hpp');
+const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
-const passport = require('passport');
 
 require('dotenv').config();
-require('./utils/passport');
 require('express-async-errors');
 
 const userRouter = require('./Routes/usersRoutes');
@@ -63,7 +61,7 @@ app.use(xss());
 
 // app.use('/', limiter);
 
-// app.use(hpp());
+app.use(hpp());
 
 app.get('/', (req, res) => {
   res.send('Hello From Another World');
