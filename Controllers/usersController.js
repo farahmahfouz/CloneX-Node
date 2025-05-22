@@ -54,8 +54,13 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     );
   const filteredBody = filteredObject(req.body, 'name', 'email');
 
-  if (req.body.image && Array.isArray(req.body.image)) {
-    filteredBody.image = req.body.image[0];
+
+  if (req.body.image) {
+    filteredBody.image = Array.isArray(req.body.image) ? req.body.image[0] : req.body.image;
+  }
+
+  if (req.body.coverImage) {
+    filteredBody.coverImage = Array.isArray(req.body.coverImage) ? req.body.coverImage[0] : req.body.coverImage;
   }
 
   const updateUser = await User.findByIdAndUpdate(req.user._id, filteredBody, {
@@ -65,7 +70,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 
   res.status(200).send({
     status: 'success',
-    data: { updateUser },
+    data: { user: updateUser },
   });
 });
 

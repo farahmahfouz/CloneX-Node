@@ -69,3 +69,43 @@ exports.handleImages = (fieldname) => {
     }
   };
 };
+
+exports.handleMultipleImages = (fieldnames) => {
+  return async (req, res, next) => {
+    try {
+      // Process each field type
+      for (const fieldname of fieldnames) {
+        const files = req.files?.[fieldname];
+        if (files && files.length > 0) {
+          // Upload images to ImageKit for this field
+          const uploadedImages = await Promise.all(
+            files.map(async (file) => {
+              const result = await imagekit.upload({
+                file: file.buffer,
+                fileName: `${fieldname}-${Date.now()}-${Math.random()
+                  .toString(36)
+                  .substr(2, 9)}.jpeg`,
+                folder: `/uploads/${fieldname}`,
+              });
+              return result;
+            })
+          );
+
+          // Store URL(s) in request body
+          if (fieldname === 'image' || fieldname === 'coverImage') {
+            // Single image fields - store first URL only
+            req.body[fieldname] = uploadedImages[0].url;
+          } else {
+            // Multiple image fields - store array of URLs
+            req.body[fieldname] = uploadedImages.map((file) => file.url);
+          }
+        }
+      }
+      
+      next();
+    } catch (error) {
+      console.error('🔥 ImageKit Upload Error:', error);
+      return next(new AppError('Error uploading images to ImageKit', 500));
+    }
+  };
+};

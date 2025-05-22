@@ -6,7 +6,7 @@ const {
   updateMe,
   deleteUser,
   getMe,
-  updatePassword
+  updatePassword,
 } = require('./../Controllers/usersController');
 const {
   signup,
@@ -21,7 +21,7 @@ const {
   signupSchema,
   loginSchema,
 } = require('../validation/userValidation');
-const { uploadImages, handleImages } = require('../utils/images');
+const { uploadImages, handleMultipleImages } = require('../utils/images');
 
 router.get('/', getAllUsers);
 
@@ -29,8 +29,11 @@ router.get('/me', auth, getMe, getOneUser);
 router.patch(
   '/updateMe',
   auth,
-  uploadImages([{ name: 'image', count: 1 }]),
-  handleImages('image'),
+  uploadImages([
+    { name: 'image', count: 1 },
+    { name: 'coverImage', count: 1 },
+  ]),
+  handleMultipleImages(['image', 'coverImage']),
   updateMe
 );
 router.patch('/updateMyPassword', auth, updatePassword);

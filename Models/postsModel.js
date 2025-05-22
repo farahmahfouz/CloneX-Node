@@ -54,7 +54,7 @@ postSchema.virtual('comments', {
 postSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'userId',
-    select: '_id name image',
+    select: '_id name image email',
   })
     .populate('likesCount')
     .populate({
