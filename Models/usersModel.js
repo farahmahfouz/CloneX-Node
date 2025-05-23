@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+
 const userSchema = new mongoose.Schema(
   {
     googleId: { type: String },
@@ -13,20 +14,40 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       lowercase: true,
+      unique: true,
     },
     password: {
       type: String,
       required: true,
-      select: false
+      select: false,
     },
     image: {
       type: String,
     },
     coverImage: String,
+    bio: {
+      type: String,
+      default: '',
+      maxlength: 140,
+    },
+    location: {
+      type: String,
+      default: '',
+    },
+    website: {
+      type: String,
+      default: '',
+      validate: {
+        validator: function (val) {
+          return !val || /^https?:\/\/.+/.text(val);
+        },
+        message: 'Please Enter a valid URL',
+      },
+    },
     dateOfBirth: {
       type: Date,
       required: true,
-      select: false
+      select: false,
     },
     active: {
       type: Boolean,
@@ -74,7 +95,10 @@ userSchema.methods.createPasswordResetToken = function () {
 
 userSchema.methods.changePasswordAfter = function (JWTTimesStamp) {
   if (this.passwordChangedAt) {
-    const changedTimeStamp = parseInt(this.passwordChangedAt.getTime()/ 1000, 10);
+    const changedTimeStamp = parseInt(
+      this.passwordChangedAt.getTime() / 1000,
+      10
+    );
     return JWTTimesStamp < changedTimeStamp;
   }
   return false;

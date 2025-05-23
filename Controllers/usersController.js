@@ -13,7 +13,7 @@ exports.getMe = (req, res, next) => {
   next();
 };
 
-const filteredObject = (obj, allowedFields) => {
+const filteredObject = (obj, ...allowedFields) => {
   let newObj = {};
   Object.keys(obj).forEach((el) => {
     if (allowedFields.includes(el)) newObj[el] = obj[el];
@@ -52,7 +52,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
         400
       )
     );
-  const filteredBody = filteredObject(req.body, 'name', 'email');
+  const filteredBody = filteredObject(req.body, 'name', 'email', 'bio', 'location', 'website');
 
 
   if (req.body.image) {
