@@ -52,15 +52,25 @@ exports.updateMe = catchAsync(async (req, res, next) => {
         400
       )
     );
-  const filteredBody = filteredObject(req.body, 'name', 'email', 'bio', 'location', 'website');
-
+  const filteredBody = filteredObject(
+    req.body,
+    'name',
+    'email',
+    'bio',
+    'location',
+    'website'
+  );
 
   if (req.body.image) {
-    filteredBody.image = Array.isArray(req.body.image) ? req.body.image[0] : req.body.image;
+    filteredBody.image = Array.isArray(req.body.image)
+      ? req.body.image[0]
+      : req.body.image;
   }
 
   if (req.body.coverImage) {
-    filteredBody.coverImage = Array.isArray(req.body.coverImage) ? req.body.coverImage[0] : req.body.coverImage;
+    filteredBody.coverImage = Array.isArray(req.body.coverImage)
+      ? req.body.coverImage[0]
+      : req.body.coverImage;
   }
 
   const updateUser = await User.findByIdAndUpdate(req.user._id, filteredBody, {
@@ -98,26 +108,12 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteUser = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  try {
-    const userId = req.params.id;
-    // 1. Update user to be inactive
-    await User.findByIdAndUpdate(userId, { active: false }, { session });
-    // 2. Delete all posts by that user
-    await Post.deleteMany({ userId }, { session });
-    // 3. Commit transaction
-    await session.commitTransaction();
-    session.endSession();
-
-    res.status(200).send({
-      status: 'success',
-      data: null,
-    });
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    next(error);
-  }
-};
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const userId = req.params.id;
+  await User.findByIdAndUpdate(userId, { active: false }, { session });
+  await Post.deleteMany({ userId }, { session });
+  res.status(200).send({
+    status: 'success',
+    data: null,
+  });
+});

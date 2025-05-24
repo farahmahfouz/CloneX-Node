@@ -22,6 +22,7 @@ const {
   loginSchema,
 } = require('../validation/userValidation');
 const { uploadImages, handleMultipleImages } = require('../utils/images');
+const { addFollow, unFollow, getMyFollowStats, getUserFollowStats } = require('../Controllers/followController');
 
 router.get('/', getAllUsers);
 
@@ -45,5 +46,16 @@ router.post('/login', validate(loginSchema), login);
 
 router.post('/forgotPassword', forgotPassword);
 router.patch('/resetPassword/:token', resetPassword);
+
+
+router.use(auth)
+
+router.post('/:id/follow', addFollow);
+
+router.post('/:id/follow', unFollow);
+
+router.get('/follow', getMyFollowStats)
+
+router.get('/:id/follow', getUserFollowStats)
 
 module.exports = router;

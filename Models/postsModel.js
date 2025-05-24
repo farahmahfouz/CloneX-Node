@@ -61,7 +61,7 @@ postSchema.pre(/^find/, function (next) {
       path: 'comments',
       populate: {
         path: 'user',
-        select: '_id name image',
+        select: '_id name image email',
       },
       select: '-__v'
     });

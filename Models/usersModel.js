@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-
 const userSchema = new mongoose.Schema(
   {
     googleId: { type: String },
@@ -44,6 +43,8 @@ const userSchema = new mongoose.Schema(
         message: 'Please Enter a valid URL',
       },
     },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     dateOfBirth: {
       type: Date,
       required: true,
