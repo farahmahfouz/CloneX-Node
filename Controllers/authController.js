@@ -39,7 +39,7 @@ exports.login = catchAsync(async (req, res, next) => {
 
   res.cookie('jwt', refreshToken, {
     httpOnly: true,
-    // secure: true,
+    secure: true,
     sameSite: 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -71,7 +71,7 @@ exports.refresh = catchAsync(async (req, res, next) => {
 
   res.cookie('jwt', newRefreshToken, {
     httpOnly: true,
-    // secure: true, 
+    secure: true, 
     sameSite: 'none', 
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });

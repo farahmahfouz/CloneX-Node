@@ -7,6 +7,8 @@ const {
   updatePost,
   deletePost,
   getUserPost,
+  repostPost,
+  unRepostPost
 } = require('./../Controllers/postsController');
 const { auth } = require('../Middlewares/authMiddleware');
 const { uploadImages, handleImages } = require('../utils/images');
@@ -18,7 +20,10 @@ const commentsRoute = require('../Routes/commentsRoutes');
 router.use('/:postId/likes', likesRoute);
 router.use('/:postId/comments', commentsRoute);
 
-router.use(auth)
+router.use(auth);
+
+router.post('/:id/repost', repostPost);
+router.delete('/:id/repost', unRepostPost);
 
 router.get('/', getAllPosts);
 router.get('/me', getUserPost);

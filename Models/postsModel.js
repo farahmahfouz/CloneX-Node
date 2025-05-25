@@ -5,12 +5,19 @@ const postSchema = new mongoose.Schema(
   {
     content: {
       type: String,
-      required: true,
+      required: function () {
+        return !this.repost;
+      },
     },
     images: [String],
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+    },
+    repost: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Post',
+      default: null,
     },
   },
   {
@@ -51,19 +58,34 @@ postSchema.virtual('comments', {
   localField: '_id',
 });
 
+postSchema.virtual('repostsCount', {
+  ref: 'Post',
+  localField: '_id',
+  foreignField: 'repost',
+  count: true
+});
+
 postSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'userId',
     select: '_id name image email',
   })
     .populate('likesCount')
+    // .populate('repostsCount') 
     .populate({
       path: 'comments',
       populate: {
         path: 'user',
         select: '_id name image email',
       },
-      select: '-__v'
+      select: '-__v',
+    })
+    .populate({
+      path: 'repost',
+      populate: {
+        path: 'userId',
+        select: '_id name image email',
+      },
     });
 
   this.sort({ createdAt: -1 });

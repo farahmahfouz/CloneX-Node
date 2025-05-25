@@ -5,13 +5,64 @@ const catchAsync = require('../utils/catchAsync');
 const isPostOwner = (postUserId, currentUserId) =>
   postUserId.toString() === currentUserId.toString();
 
+exports.repostPost = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const originalPostId = req.params.id;
+
+  const originalPost = await Post.findById(originalPostId);
+  if (!originalPost) return next(new AppError('Post not found!', 404));
+
+  if (originalPost.userId.toString() === userId.toString()) {
+    return next(new AppError('You cannot repost your own post!', 400));
+  }
+
+  const existingRepost = await Post.findOne({
+    userId,
+    repost: originalPostId,
+  });
+  if (existingRepost) {
+    return next(new AppError('You already reposted this post!', 400));
+  } 
+
+  const repost = await Post.create({
+    userId,
+    repost: originalPostId,
+  });
+
+  res.status(201).json({
+    status: 'success',
+    data: { repost },
+  });
+});
+
+exports.unRepostPost = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const originalPostId = req.params.id;
+
+  const repost = await Post.findOneAndDelete({
+    userId,
+    repost: originalPostId,
+  });
+
+  if (!repost) {
+    return next(new AppError('Repost not found!', 404));
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
+});
+
+
+
 exports.getAllPosts = catchAsync(async (req, res) => {
   const posts = await Post.find();
 
   if (!posts) {
     throw new AppError('No Posts Found', 404);
   }
-  
+
   const postsWithLikes = await Post.attachedIsLiked(posts, req.user._id);
 
   res.status(200).send({
@@ -43,6 +94,7 @@ exports.getUserPost = catchAsync(async (req, res) => {
   res.status(200).send({
     status: 'success',
     message: 'Posts of Currently user retrieved successfully',
+    result: posts.length,
     data: { posts: postsWithLikes },
   });
 });
