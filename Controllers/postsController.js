@@ -1,6 +1,7 @@
 const Post = require('./../Models/postsModel');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
+const { createNotification } = require('./notificationController');
 
 const isPostOwner = (postUserId, currentUserId) =>
   postUserId.toString() === currentUserId.toString();
@@ -28,6 +29,15 @@ exports.repostPost = catchAsync(async (req, res, next) => {
     userId,
     repost: originalPostId,
   });
+
+  const notification = await createNotification({
+    recipient: originalPost.userId,
+    sender: userId,
+    type: 'repost',
+    post: originalPostId,
+  });
+
+  req.app.get('io').to(originalPost.userId.toString()).emit('notification', notification);
 
   res.status(201).json({
     status: 'success',

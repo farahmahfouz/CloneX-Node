@@ -1,24 +1,21 @@
-const { Router } = require('express');
-const router = Router({ mergeParams: true });
-const { auth } = require('../Middlewares/authMiddleware');
+const express = require('express');
+const router = express.Router({ mergeParams: true });
 const {
-  createComment,
+  addComment,
+  getPostComments,
+  deleteComment,
   getAllComments,
   getCommentById,
   updateComment,
-  deleteComment,
 } = require('../Controllers/commentsController');
+const { auth } = require('../Middlewares/authMiddleware');
 
 router.use(auth);
 
-router.post('/', createComment);
-
 router.get('/', getAllComments);
-
 router.get('/:id', getCommentById);
-
+router.post('/', addComment);
 router.patch('/:id', updateComment);
-
 router.delete('/:id', deleteComment);
 
 module.exports = router;

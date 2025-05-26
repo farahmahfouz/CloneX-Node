@@ -2,21 +2,70 @@ const Post = require('../Models/postsModel');
 const Comment = require('../Models/commentsModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
+const { createNotification } = require('./notificationController');
 
-exports.createComment = catchAsync(async (req, res, next) => {
-  const postExists = await Post.findById(req.params.postId);
-  if (!postExists) return next(new AppError('Post not found', 404));
-
+exports.addComment = catchAsync(async (req, res, next) => {
+  const postId = req.params.postId;
+  const userId = req.user._id;
   const { text } = req.body;
+
+  const post = await Post.findById(postId);
+  if (!post) {
+    return next(new AppError('Post not found', 404));
+  }
+
   const comment = await Comment.create({
     text,
-    user: req.user._id,
-    post: req.params.postId,
+    post: postId,
+    user: userId,
   });
+
+  // Don't create notification if user comments on their own post
+  if (post.userId.toString() !== userId.toString()) {
+    const notification = await createNotification({
+      recipient: post.userId,
+      sender: userId,
+      type: 'comment',
+      post: postId,
+      comment: comment._id,
+    });
+
+    // Emit notification to the post owner
+    req.app.get('io').to(post.userId.toString()).emit('notification', notification);
+  }
+
   res.status(201).json({
     status: 'success',
-    message: 'Comment created successfully',
     data: { comment },
+  });
+});
+
+exports.getPostComments = catchAsync(async (req, res, next) => {
+  const postId = req.params.postId;
+  const comments = await Comment.find({ post: postId });
+
+  res.status(200).json({
+    status: 'success',
+    data: { comments },
+  });
+});
+
+exports.deleteComment = catchAsync(async (req, res, next) => {
+  const commentId = req.params.id;
+  const userId = req.user._id;
+
+  const comment = await Comment.findOneAndDelete({
+    _id: commentId,
+    user: userId,
+  });
+
+  if (!comment) {
+    return next(new AppError('Comment not found', 404));
+  }
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
   });
 });
 
@@ -66,14 +115,5 @@ exports.updateComment = catchAsync(async (req, res, next) => {
     status: 'success',
     message: 'Comment updated successfully',
     data: { comment: updatedComment },
-  });
-});
-
-exports.deleteComment = catchAsync(async (req, res, next) => {
-  await Comment.findByIdAndDelete(req.params.id);
-  res.status(200).json({
-    status: 'success',
-    message: 'Comment deleted successfully',
-    data: null,
   });
 });

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const User = require('../Models/usersModel');
 const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
+const { createNotification } = require('./notificationController');
 
 exports.addFollow = async (req, res, next) => {
   const currentUserId = req.user._id;
@@ -29,6 +30,14 @@ exports.addFollow = async (req, res, next) => {
       { $addToSet: { following: userIdToFollow } },
       { session }
     );
+
+    const notification = await createNotification({
+      recipient: userToFollow,
+      sender: currentUserId,
+      type: 'follow'
+    });
+
+    req.app.get('io').to(userIdToFollow.toString()).emit('notification', notification);
 
     await session.commitTransaction();
 

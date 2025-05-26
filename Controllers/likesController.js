@@ -1,7 +1,8 @@
 const Like = require('../Models/likesModel');
+const Post = require('../Models/postsModel');
 const AppError = require('../utils/AppError');
-const mongoose = require('mongoose');
 const catchAsync = require('../utils/catchAsync');
+const { createNotification } = require('./notificationController');
 
 exports.getAllLikes = catchAsync(async (req, res, next) => {
   let filter = {};
@@ -15,30 +16,52 @@ exports.getAllLikes = catchAsync(async (req, res, next) => {
   });
 });
 
-
-exports.addLike = catchAsync(async (req, res, next) => {
-  const postId = new mongoose.Types.ObjectId(req.params.postId);
+exports.likePost = catchAsync(async (req, res, next) => {
+  const postId = req.params.postId;
   const userId = req.user._id;
 
-  const like = await Like.findOne({ post: postId, user: userId });
+  const post = await Post.findById(postId);
+  if (!post) {
+    return next(new AppError('Post not found', 404));
+  }
 
-  if (like) return next(new AppError('You have already liked this post.', 400));
+  if (post.userId.toString() !== userId.toString()) {
+    const notification = await createNotification({
+      recipient: post.userId,
+      sender: userId,
+      type: 'like',
+      post: postId,
+    });
 
-  const newLike = await Like.create({ post: postId, user: userId });
+    req.app.get('io').to(post.userId.toString()).emit('notification', notification);
+  }
 
-  res.status(201).send({
-    message: 'Like added successfully.',
-    like: newLike,
+  const like = await Like.create({
+    post: postId,
+    user: userId,
+  });
+
+  res.status(201).json({
+    status: 'success',
+    data: { like },
   });
 });
 
-exports.removeLike = catchAsync(async (req, res, next) => {
-  const postId = new mongoose.Types.ObjectId(req.params.postId);
+exports.unlikePost = catchAsync(async (req, res, next) => {
+  const postId = req.params.postId;
   const userId = req.user._id;
 
-  const like = await Like.findOneAndDelete({ post: postId, user: userId });
+  const like = await Like.findOneAndDelete({
+    post: postId,
+    user: userId,
+  });
 
-  if (!like) return next(new AppError('Like not found', 404));
+  if (!like) {
+    return next(new AppError('Like not found', 404));
+  }
 
-  res.status(200).send({ message: 'Like removed successfully.' });
+  res.status(204).json({
+    status: 'success',
+    data: null,
+  });
 });
